@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+  </head>
+  <body>
+    <script>
+      const width = 800;
+      const height = 600;
+      const svg = d3
+        .select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+      const projection = d3
+        .geoMercator()
+        .center([120, 23])
+        .scale(100)
+        .rotate([0, 0, 0]);
+      const path = d3.geoPath().projection(projection);
+      const g = svg.append("g");
+      const diversityColor = d3
+        .scaleSequential((t) => d3.hsl(t * 360, 0.9, 0.9).formatRgb())
+        .domain([0, 250]);
+      d3.json("World_Countries.json").then(function (topojsonData) {
+        console.log(topojsonData);
+        const convertedGeojson = topojson.feature(
+          topojsonData,
+          topojsonData.objects.World_Countries
+        );
+        const getGeoFeature = convertedGeojson.features;
+        g.selectAll("path")
+          .data(getGeoFeature)
+          .join("path")
+          .style("stroke", "gray")
+          .style("stroke-width", ".25")
+          .style("stroke-opacity", ".5")
+          .style("fill", (d, i) => diversityColor(i))
+          .attr("d", path);
+      });
+      const zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .on("zoom", function (event) {
+          console.log(event.transform);
+          g.selectAll("path").attr("transform", event.transform);
+        });
+      svg.call(zoom);
+    </script>
+  </body>
+</html>
